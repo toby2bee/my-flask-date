@@ -1,0 +1,92 @@
+name: CI/CD Pipeline for Flask App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_scan:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout the repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. Set up Docker Buildx (advanced build features)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 3. Build the Docker image
+      - name: Build Docker Image
+        run: docker build -t my-flask-date .
+        
+        # id: build_image
+        # uses: docker/build-push-action@v4
+        # with:
+        #   context: .
+        #   file: ./Dockerfile
+        #   push: false  # Do not push until the scan passes
+        #   tags: my-flask-date
+
+      # 4. Run tests against the built image (optional health-check)
+      # - name: Test Docker Container
+      #   run: |
+      #     docker run --rm -d -p 8080:80 --name my-flask-date my-flask-date
+      #     sleep 5
+      #     curl -I http://localhost:8080 | grep "200 OK"
+      #     docker stop my-flask-date
+
+      # 5. Scan the image with Trivy for vulnerabilities
+      - name: Scan Image with Trivy
+        uses: aquasecurity/trivy-action@v0.29.0
+        with:
+          image-ref: my-flask-date
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          # Adjust the severity threshold as needed
+
+  #     # 6. Log in to Docker Hub
+  #     - name: Docker Hub Login
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  #     # 7. Push the Docker image to Docker Hub (only if the scan passes)
+  #     - name: Push Docker Image to Docker Hub
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         context: .
+  #         file: ./Dockerfile
+  #         push: true
+  #         tags: yourdockerhubusername/static-web:latest
+
+  # deploy:
+  #   needs: build_and_scan
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v3
+
+  #     # Option: Deploy to Minikube (for local staging)
+  #     - name: Set up Kubectl
+  #       uses: azure/setup-kubectl@v3
+  #       with:
+  #         version: 'latest'
+      
+  #     - name: Deploy to Minikube
+  #       run: |
+  #         kubectl apply -f k8s-deployment.yaml
+  #         echo "Static web deployed on Minikube. Access via: http://$(minikube ip):<nodePort>"
+
+      # Option: Deploy to DigitalOcean Assets
+      # Uncomment and modify the following if using DO assets (Droplet or Kubernetes cluster)
+      # - name: Deploy to DigitalOcean
+      #   run: |
+      #     ssh -o StrictHostKeyChecking=no ${{ secrets.DO_SSH_USER }}@${{ secrets.DO_HOST }} << 'EOF'
+      #     docker pull yourdockerhubusername/static-web:latest
+      #     docker stop static-web || true
+      #     docker run -d -p 80:80 --name static-web yourdockerhubusername/static-web:latest
+      #     EOF
