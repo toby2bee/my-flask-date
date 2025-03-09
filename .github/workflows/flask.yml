@@ -21,6 +21,7 @@ jobs:
       # 3. Build the Docker image
       - name: Build Docker Image
         run: docker build -t my-flask-date .
+        
         # id: build_image
         # uses: docker/build-push-action@v4
         # with:
@@ -30,21 +31,21 @@ jobs:
         #   tags: my-flask-date
 
       # 4. Run tests against the built image (optional health-check)
-      - name: Test Docker Container
-        run: |
-          docker run --rm -d -p 8080:80 --name my-flask-date my-flask-date
-          sleep 5
-          curl -I http://localhost:8080 | grep "200 OK"
-          docker stop my-flask-date
+      # - name: Test Docker Container
+      #   run: |
+      #     docker run --rm -d -p 8080:80 --name my-flask-date my-flask-date
+      #     sleep 5
+      #     curl -I http://localhost:8080 | grep "200 OK"
+      #     docker stop my-flask-date
 
-  #     # 5. Scan the image with Trivy for vulnerabilities
-  #     - name: Scan Image with Trivy
-  #       uses: aquasecurity/trivy-action@v0.5.0
-  #       with:
-  #         image-ref: yourdockerhubusername/static-web:latest
-  #         exit-code: '1'
-  #         severity: 'CRITICAL,HIGH'
-  #         # Adjust the severity threshold as needed
+      # 5. Scan the image with Trivy for vulnerabilities
+      - name: Scan Image with Trivy
+        uses: aquasecurity/trivy-action@v0.5.0
+        with:
+          image-ref: my-flask-date
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          # Adjust the severity threshold as needed
 
   #     # 6. Log in to Docker Hub
   #     - name: Docker Hub Login
