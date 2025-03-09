@@ -20,18 +20,19 @@ jobs:
 
       # 3. Build the Docker image
       - name: Build Docker Image
-        id: build_image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./Dockerfile
-          push: false  # Do not push until the scan passes
-          tags: my-flask-date:latest
+        run: docker build -t my-flask-date .
+        # id: build_image
+        # uses: docker/build-push-action@v4
+        # with:
+        #   context: .
+        #   file: ./Dockerfile
+        #   push: false  # Do not push until the scan passes
+        #   tags: my-flask-date
 
       # 4. Run tests against the built image (optional health-check)
       - name: Test Docker Container
         run: |
-          docker run --rm -d -p 8080:80 --name my-flask-date my-flask-date:latest
+          docker run --rm -d -p 8080:80 --name my-flask-date my-flask-date
           sleep 5
           curl -I http://localhost:8080 | grep "200 OK"
           docker stop my-flask-date
